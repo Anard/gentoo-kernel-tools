@@ -1,0 +1,110 @@
+#!/bin/sh
+# Script for building new or updated kernel
+configPath="/usr/local/lib"
+source ${configPath}/help.cnf
+
+#test if running on a bare VT
+if [ "$TERM" = linux ]; then
+    TERM=xterm     #so make menuconfig will display correctly
+fi
+
+NPROC=$( nproc ) # run nproc to get the number of cores
+NPROC=$((NPROC+1))
+
+cd /usr/src/linux || { echo "Did you forget 'eselect kernel set' ?" >&2 && exit 255 ; }
+
+# Optional Parameter #1 is the location of the config file used
+# if omitted the running kernel's internal configuration is used
+if [ "$1" != "" ]; then
+    if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+	# HELP
+	echo "${bold}Script for building new or updated kernel${normal}"
+	echo "Usage : build-kernel [OPTION|DIRECTORY|FILE]"
+	echo "If nothing set, present kernel's built-in config will be used (/proc/config.gz)"
+	echo
+	echo "${bold}OPTION :${normal}"
+	echo "	-c|--current	use existing /usr/src/linux/.config"
+	echo
+	echo "${bold}DIRECTORY :	${normal} Path to .config file to use"
+	echo
+	echo "${bold}FILE :		${normal} Config file to use"
+
+	echo
+	exit 0
+
+    elif [ "$1" = "-c" ] || [ "$1" = "--current" ]; then
+	# use .config file included in /usr/src/linux
+	if [ -f ".config" ]; then
+	    echo "Using current .config file in /usr/src/linux"
+	else
+	    echo "/usr/src/linux/.config doesn't exist, please choose an existing config file"
+	    exit 255
+	fi
+
+    elif [ -d "$1" ]; then
+	folder=${1%/}
+	if [ ! "$folder" = "/usr/src/linux" ]; then
+    	    cp "$folder/.config" .config || exit 255;
+	fi
+	echo "Config is $folder/.config"
+
+    elif [ -f "$1" ]; then
+    	( cp "$1" .config && echo "Config is $1") || exit 255;
+    else
+	echo "$1 doesn't exist, use 'build-kernel --help for available options'"; exit 255;
+    fi
+
+    
+else
+    echo "Using present kernel's built-in config"
+    zcat /proc/config.gz >.config || { echo "Unable to write config from current kernel used, please choose a kernel configuration or use 'build-kernel --help'" >&2 && exit 255 ; }
+fi
+
+# At this point we should compare kernel versions and make oldconfig if the base version has updated
+make oldconfig
+make menuconfig
+
+# Actually build
+echo
+echo "Building kernel..."
+make -j"${NPROC}" || {  echo "make -j${NPROC} failed"; exit 1; }
+
+# install into /boot
+make -j"${NPROC}" modules_install || { echo "make modules_install failed";  exit 2; }
+make -j"${NPROC}" install
+
+# no longer needed but left in as an example
+# kver="$(eselect kernel list | awk '{gsub("linux-","") ; if ($3 ~ "*") print $2}')"
+# i.e. kver contains 4.9.9-gentoo
+
+# update initramfs
+echo
+echo "Updating initramfs image..."
+if [ -f /usr/bin/dracut ]; then
+    kver=$(make -s kernelrelease)
+    dracut -f --kver "${kver}"
+
+elif [ -f /usr/bin/genkernel ]; then
+    genkernel --no-clean initramfs
+else
+    echo "Unable to find a tool to create initramfs image, skipping..."
+fi
+
+# virtualbox modules, nvidia etc.
+echo
+echo "Building Out of Kernel modules"
+emerge @module-rebuild
+
+# finished
+echo
+echo "Done, kernel built" 
+
+# update bootloader
+if [ -f /usr/sbin/grub-update ]; then
+    echo "Updating Grub bootloader"
+    grub-update
+else
+    echo "Don't forget to update your bootloader"
+fi
+
+exit 0
