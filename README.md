@@ -6,3 +6,4 @@ Simply replace common `grub-mkconfig -o /boot/grub/grub.cfg` command to update G
 
 ## build-kernel
 Tool to build an updated kernel from current or choosen kernel configuration
+Use `build--kernel --help` for more information
