@@ -1,7 +1,10 @@
 #!/bin/sh
 # Script for building new or updated kernel
-configPath="/usr/local/lib"
-source ${configPath}/help.cnf
+
+configPath="/usr/lib"
+if [ -f ${configPath}/shell-text.cnf ]; then
+	source ${configPath}/shell-text.cnf
+fi
 
 #test if running on a bare VT
 if [ "$TERM" = linux ]; then
@@ -23,20 +26,24 @@ cd /usr/src/linux || { echo "Did you forget 'eselect kernel set' ?" >&2 && exit 
 # if omitted the running kernel's internal configuration is used
 if [ "$1" != "" ]; then
     if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
-	# HELP
-	echo "${bold}Script for building new or updated kernel${normal}"
-	echo -e "Usage : ${Blue}build-kernel${normal} [${Green}OPTION${normal}|${Green}DIRECTORY${normal}|${Green}FILE${normal}]"
-	echo "If nothing set, present kernel's built-in config will be used (/proc/config.gz)"
-	echo
-	echo -e "${Green}OPTION${normal} :"
-	echo "	${bold}-c|--current${normal}	use existing /usr/src/linux/.config"
-	echo
-	echo -e "${Green}DIRECTORY${normal} :	Path to .config file to use"
-	echo
-	echo -e "${Green}FILE${normal} :		Config file to use"
+		# HELP
+		help=$( cat << HELP
+${bold}Script for building new or updated kernel${normal}
+Usage : ${Blue}build-kernel${normal} [${Green}OPTION${normal}|${Green}DIRECTORY${normal}|${Green}FILE${normal}]
+If nothing set, present kernel's built-in config will be used (/proc/config.gz)
 
-	echo
-	exit 0
+${Green}OPTION${normal} :
+	${bold}-c|--current${normal}	use existing /usr/src/linux/.config
+
+${Green}DIRECTORY${normal} :	Path to .config file to use
+
+${Green}FILE${normal} :		Config file to use
+
+HELP
+)
+
+		echo -e "$help"
+		exit 0
 
     elif [ "$1" = "-c" ] || [ "$1" = "--current" ]; then
 	# use .config file included in /usr/src/linux
