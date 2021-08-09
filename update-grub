@@ -1,0 +1,14 @@
+#!/bin/bash
+if [ $# -gt 0 ]; then
+	if [ -f "$1" ]; then
+		file="$1"
+	else
+		echo "Usage : update-grub [FILE] - if FILE is not set, use /boot/grub/grub.cng"
+		exit 255
+	fi
+else
+	file="/boot/grub/grub.cfg"
+fi
+
+/usr/sbin/grub-mkconfig -o "$file" || exit 1
+exit 0
