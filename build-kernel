@@ -8,8 +8,14 @@ if [ "$TERM" = linux ]; then
     TERM=xterm     #so make menuconfig will display correctly
 fi
 
-NPROC=$( nproc ) # run nproc to get the number of cores
-NPROC=$((NPROC+1))
+if [ -f /etc/portage/make.conf ]; then
+    . /etc/portage/make.conf
+else
+    # run nproc to get the number of cores
+    NPROC=$( nproc )
+    NPROC=$((NPROC+1))
+    MAKEOPTS="-j${NPROC}"
+fi
 
 cd /usr/src/linux || { echo "Did you forget 'eselect kernel set' ?" >&2 && exit 255 ; }
 
@@ -67,11 +73,11 @@ make menuconfig
 # Actually build
 echo
 echo "Building kernel..."
-make -j"${NPROC}" || {  echo "make -j${NPROC} failed"; exit 1; }
+make ${MAKEOPTS} || {  echo "make ${MAKEOPTS} failed"; exit 1; }
 
 # install into /boot
-make -j"${NPROC}" modules_install || { echo "make modules_install failed";  exit 2; }
-make -j"${NPROC}" install
+make ${MAKEOPTS} modules_install || { echo "make modules_install failed";  exit 2; }
+make ${MAKEOPTS} install
 
 # no longer needed but left in as an example
 # kver="$(eselect kernel list | awk '{gsub("linux-","") ; if ($3 ~ "*") print $2}')"
