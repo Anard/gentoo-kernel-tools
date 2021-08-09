@@ -1,18 +1,23 @@
 #!/bin/sh
 # Script for building new or updated kernel
 
+# parameter set on emerging file if USE flag grub is set
+grub=0
+
 configPath="/usr/lib"
 if [ -f ${configPath}/shell-text.cnf ]; then
 	source ${configPath}/shell-text.cnf
 fi
 
-#test if running on a bare VT
+# test if running on a bare VT
 if [ "$TERM" = linux ]; then
     TERM=xterm     #so make menuconfig will display correctly
 fi
 
-if [ -f /etc/portage/make.conf ]; then
-    . /etc/portage/make.conf
+# try to get MAKEOPTS from /etc/portage/make.conf
+makeFile="/etc/portage/make.conf"
+if [ -f "${makeFile}" ]; then
+    . "${makeFile}"
 else
     # run nproc to get the number of cores
     NPROC=$( nproc )
@@ -20,7 +25,7 @@ else
     MAKEOPTS="-j${NPROC}"
 fi
 
-cd /usr/src/linux || { echo "Did you forget 'eselect kernel set' ?" >&2 && exit 255 ; }
+cd /usr/src/linux || { echo -e "${red}/usr/src/linux not found${normal} Did you forget 'eselect kernel set' ?" >&2 && exit 255 ; }
 
 # Optional Parameter #1 is the location of the config file used
 # if omitted the running kernel's internal configuration is used
@@ -41,16 +46,15 @@ ${Green}FILE${normal} :		Config file to use
 
 HELP
 )
-
 		echo -e "$help"
 		exit 0
 
     elif [ "$1" = "-c" ] || [ "$1" = "--current" ]; then
 	# use .config file included in /usr/src/linux
 	if [ -f ".config" ]; then
-	    echo "Using current .config file in /usr/src/linux"
+	    echo -e "${orange}Using current .config file in /usr/src/linux${normal}"
 	else
-	    echo "/usr/src/linux/.config doesn't exist, please choose an existing config file"
+	    echo -e "${red}/usr/src/linux/.config doesn't exist${normal}, please choose an existing config file"
 	    exit 255
 	fi
 
@@ -59,18 +63,18 @@ HELP
 	if [ ! "$folder" = "/usr/src/linux" ]; then
     	    cp "$folder/.config" .config || exit 255;
 	fi
-	echo "Config is $folder/.config"
+	echo -e "${orange}Config is $folder/.config${normal}"
 
     elif [ -f "$1" ]; then
-    	( cp "$1" .config && echo "Config is $1") || exit 255;
+    	( cp "$1" .config && echo -e "${orange}Config is $1${normal}") || exit 255;
     else
-	echo "$1 doesn't exist, use 'build-kernel --help for available options'"; exit 255;
+	echo -e "${red}No configuration found for $1${normal}, use 'build-kernel --help for available options'"; exit 255;
     fi
 
     
 else
-    echo "Using present kernel's built-in config"
-    zcat /proc/config.gz >.config || { echo "Unable to write config from current kernel used, please choose a kernel configuration or use 'build-kernel --help'" >&2 && exit 255 ; }
+    echo -e "${orange}Using present kernel's built-in config${normal}"
+    zcat /proc/config.gz >.config || { echo -e "${red}Unable to write config from current kernel used${normal}, please choose a kernel configuration or use 'build-kernel --help'" >&2 && exit 255 ; }
 fi
 
 # At this point we should compare kernel versions and make oldconfig if the base version has updated
@@ -79,11 +83,11 @@ make menuconfig
 
 # Actually build
 echo
-echo "Building kernel..."
-make ${MAKEOPTS} || {  echo "make ${MAKEOPTS} failed"; exit 1; }
+echo -e "${green}Building kernel...${normal}"
+make ${MAKEOPTS} || {  echo -e "${red}make ${MAKEOPTS} failed${normal}"; exit 1; }
 
 # install into /boot
-make ${MAKEOPTS} modules_install || { echo "make modules_install failed";  exit 2; }
+make ${MAKEOPTS} modules_install || { echo -e "${red}make modules_install failed${normal}";  exit 2; }
 make ${MAKEOPTS} install
 
 # no longer needed but left in as an example
@@ -92,7 +96,7 @@ make ${MAKEOPTS} install
 
 # update initramfs
 echo
-echo "Updating initramfs image..."
+echo -e "${green}Updating initramfs image...${normal}"
 if [ -f /usr/bin/dracut ]; then
     kver=$(make -s kernelrelease)
     dracut -f --kver "${kver}"
@@ -100,22 +104,22 @@ if [ -f /usr/bin/dracut ]; then
 elif [ -f /usr/bin/genkernel ]; then
     genkernel --no-clean initramfs
 else
-    echo "Unable to find a tool to create initramfs image, skipping..."
+    echo -e "${orange}Unable to find a tool to create initramfs image, skipping...${normal}"
 fi
 
 # virtualbox modules, nvidia etc.
 echo
-echo "Building Out of Kernel modules"
+echo -e "${green}Building Out of Kernel modules${normal}"
 emerge @module-rebuild
 
 # finished
 echo
-echo "Done, kernel built" 
+echo -e "${Green}Done, kernel built${normal}" 
 
 # update bootloader
-if [ -f /usr/sbin/grub-update ]; then
-    echo "Updating Grub bootloader"
-    grub-update
+if [ $grub -gt 0 ]; then
+    echo -e "${green}Updating Grub bootloader...${normal}"
+    update-grub
 else
     echo "Don't forget to update your bootloader"
 fi
