@@ -28,7 +28,7 @@ if [ "$1" != "" ]; then
 	echo -e "Usage : $(Blue}build-kernel${normal} [${Green}OPTION$(normal}|${Green}DIRECTORY$(normal}|$(Green}FILE${normal}]"
 	echo "If nothing set, present kernel's built-in config will be used (/proc/config.gz)"
 	echo
-	echo -e "${Green}}OPTION${normal} :"
+	echo -e "${Green}OPTION${normal} :"
 	echo "	${bold}-c|--current$(normal}	use existing /usr/src/linux/.config"
 	echo
 	echo -e "${Green}DIRECTORY${normal} :	Path to .config file to use"
