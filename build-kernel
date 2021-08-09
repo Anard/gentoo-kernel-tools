@@ -25,15 +25,15 @@ if [ "$1" != "" ]; then
     if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 	# HELP
 	echo "${bold}Script for building new or updated kernel${normal}"
-	echo "Usage : build-kernel [OPTION|DIRECTORY|FILE]"
+	echo -e "Usage : $(Blue}build-kernel${normal} [${Green}OPTION$(normal}|${Green}DIRECTORY$(normal}|$(Green}FILE${normal}]"
 	echo "If nothing set, present kernel's built-in config will be used (/proc/config.gz)"
 	echo
-	echo "${bold}OPTION :${normal}"
-	echo "	-c|--current	use existing /usr/src/linux/.config"
+	echo -e "${Green}}OPTION${normal} :"
+	echo "	${bold}-c|--current$(normal}	use existing /usr/src/linux/.config"
 	echo
-	echo "${bold}DIRECTORY :	${normal} Path to .config file to use"
+	echo -e "${Green}DIRECTORY${normal} :	Path to .config file to use"
 	echo
-	echo "${bold}FILE :		${normal} Config file to use"
+	echo -e "${Green}FILE$(normal} :		Config file to use"
 
 	echo
 	exit 0
