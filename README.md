@@ -8,7 +8,7 @@ Simply replace common `grub-mkconfig -o /boot/grub/grub.cfg` command to update G
 Tool to build an updated kernel from current or choosen kernel configuration
 Use `build--kernel --help` for more information
 
-# Installation instruction
+# Installation instructions
 The preferred way to install these Gentoo's kernel-tools is to add [overlay](https://github.com/Anard/anard-overlay) and `# emerge -a kernel-tools`
 
-It's also possible to clone this repository and copy scripts in /usr/sbin, but need to manually set grub variable in build-kernel script if you want script to update grub.
+It's also possible to clone this repository and copy scripts in /usr/sbin, but need to manually set grub variable in build-kernel script if you want script to update grub and install [https://github.com/Anard/HelpSh.git](shell-text) for coloring texts.
