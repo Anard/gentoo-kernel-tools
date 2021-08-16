@@ -1,0 +1,9 @@
+# Configuration file for build-kernel script
+# it can be overriden by ~/.config/build-kernel/cnf file
+# this file is written by USE flags set on emerging, if you edit this one, it will be overriden by updates
+
+# script will try to update grub by update-grub command if GRUB parameter is set
+GRUB=0
+
+# program to use to generate initramfs image, possible values : 'no', 'genkernel', 'dracut'
+INITRAMFS='no'

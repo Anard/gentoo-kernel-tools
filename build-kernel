@@ -1,13 +1,17 @@
 #!/bin/sh
 # Script for building new or updated kernel
-version="1.01-r4"; script_name=`basename "$0"`
-
-# parameter set on emerging file if USE flag grub is set
-grub=0
+version="1.01-r5"; script_name=`basename "$0"`
 
 configPath="/usr/lib"
-if [ -f ${configPath}/shell-text.cnf ]; then
-	source ${configPath}/shell-text.cnf
+if [ -f "${configPath}/shell-text.cnf" ]; then
+	source "${configPath}/shell-text.cnf"
+fi
+configPath="/etc/conf.d"
+localPath="${HOME}/.config"
+configFile="build-kernel.cnf"
+source "${configPath}/${configFile}"
+if [ -f "${localPath}/${configFile}" ]; then
+	source "${localPath}/${configFile}"
 fi
 
 # test if running on a bare VT
@@ -28,9 +32,8 @@ fi
 
 cd /usr/src/linux || { echo -e "${red}/usr/src/linux not found${normal} Did you forget 'eselect kernel set' ?" >&2 && exit 255 ; }
 
-# Optional Parameter #1 is the location of the config file used
-# if omitted the running kernel's internal configuration is used
-if [ $# -gt 0 ]; then
+# Get parameters
+while [ $# -gt 0 ]; do
     if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 		# HELP
 		help=$( cat << HELP
@@ -54,7 +57,7 @@ HELP
 		exit 0
 
     elif [ "$1" = "-v" ] || [ "$1" = "--version" ]; then
-		echo -e "${Orange}${script_name}${normal} script, version ${orange}${version}${normal}"
+		echo -e "${Orange}${script_name}${normal} from kernel-tools, version ${orange}${version}${normal}"
 		exit 0
 
     elif [ "$1" = "-c" ] || [ "$1" = "--current" ]; then
@@ -79,7 +82,7 @@ HELP
 		echo -e "${red}No configuration found for $1${normal}, use 'build-kernel --help for available options'"; exit 255;
     fi
 
-    
+done  
 else
     echo -e "${orange}Using present kernel's built-in config${normal}"
     zcat /proc/config.gz >.config || { echo -e "${red}Unable to write config from current kernel used${normal}, please choose a kernel configuration or use 'build-kernel --help'" >&2 && exit 255 ; }
@@ -104,15 +107,22 @@ make ${MAKEOPTS} install
 
 # update initramfs
 echo
-echo -e "${green}Updating initramfs image...${normal}"
-if [ -f /usr/bin/dracut ]; then
-    kver=$(make -s kernelrelease)
-    dracut -f --kver "${kver}"
+if [ $INITRAMFS != 'no'  ]; then
+	echo -e "${green}Updating initramfs image...${normal}"
+	case $INITRAMFS in
+		'genkernel')
+			/usr/bin/genkernel --no-clean initramfs || { echo -e '${red}Unable to create Initramfs image with genkernel tool$(normal}'; exit 3; }
+			;;
 
-elif [ -f /usr/bin/genkernel ]; then
-    genkernel --no-clean initramfs
-else
-    echo -e "${orange}Unable to find a tool to create initramfs image, skipping...${normal}"
+		'dracut')
+			kver=$(make -s kernelrelease)
+			dracut -f --kver "${kver}" || { echo -e '${red}Unable to create Initramfs image with dracut tool$(normal}'; exit 3; }	
+			;;
+
+		*)
+			echo -e "${orange}Tool '${INITRAMFS} unknown to create initramfs image, skipping...${normal}"
+			;;
+	esac
 fi
 
 # virtualbox modules, nvidia etc.
@@ -125,7 +135,7 @@ echo
 echo -e "${Green}Done, kernel built${normal}" 
 
 # update bootloader
-if [ $grub -gt 0 ]; then
+if [ $GRUB -gt 0 ]; then
     echo -e "${green}Updating Grub bootloader...${normal}"
     update-grub
 else
