@@ -1,6 +1,6 @@
 #!/bin/sh
 # Script for building new or updated kernel
-version="1.01-r3"; script_name=`basename "$0"`
+version="1.01-r4"; script_name=`basename "$0"`
 
 # parameter set on emerging file if USE flag grub is set
 grub=0
