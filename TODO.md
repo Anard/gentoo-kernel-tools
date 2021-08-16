@@ -3,4 +3,3 @@
 # build-kernel
 - add config file to choose which actions will be executed
 - add these options to temporary deactivate an action
-- man page
