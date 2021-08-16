@@ -14,14 +14,13 @@ build-kernel \- Compile un nouveau noyau dont la source est située dans /usr/sr
 ]
 
 .SH DESCRIPTION
-Pour compiler un noyau, choisissez dd'abord une source dans /usr/src/linux, utiliser
-.I "eselect kernel list"
-sous Gentoo ou
-.I "ln -sf /usr/src/DOSSIER-SOURCE-LINUX /usr/src/linux"
+Pour compiler un noyau, choisissez d'abord une source dans /usr/src/linux, utiliser
+.I "eselect kernel set"
+ou
+.I "ln -sf /usr/src/DOSSIER-SOURCE-LINUX /usr/src/linux"
 .PP
 .B OPTION
-utilisé pour choisir un fichier de confiiguration du noyau donné
-Si rien n'est passé, la configuration du noyau courant sera choisie (
+est utilisé pour choisir un fichier de configuration du noyau donné. Si rien n'est passé, la configuration du noyau courant sera choisie (
 .I /proc/config.gz
 )
 .PP
@@ -35,7 +34,7 @@ Si
 .I dracut
 ou
 .I genkernel
-sont installés, il créera également un image initramfs à l'aide du premier de ces scripts.
+sont installés, il créera également une image initramfs à l'aide du premier de ces scripts.
 .PP
 Si le script est compilé avec le USE flag
 .I grub
@@ -63,7 +62,7 @@ demande au script d'utiliser le fichier .config placé dans le répertoire
 demande au script d'utiliser le fichier de configuration
 .B FICHIER
 
-.SH EXIT STATUS
+.SH RETOUR
 .TP
 .B 0
 build-kernel retourne 0 en cas de  succès

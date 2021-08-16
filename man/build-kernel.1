@@ -15,13 +15,12 @@ build-kernel \- Easily build a new kernel which source is located in /usr/src/li
 
 .SH DESCRIPTION
 For building a kernel, first select a kernel source in /usr/src/linux, use
-.I "eselect kernel list"
-in Gentoo or
-.I "ln -sf /usr/src/LINUX-SRC-DIRECTORY /usr/src/linux"
+.I "eselect kernel set"
+or
+.I "ln -sf /usr/src/LINUX-SRC-DIRECTORY /usr/src/linux"
 .PP
 .B OPTION
-is used to select initial config file to use for building the kernel
-If none is selected, current running kernel will be used (
+is used to select initial config file to use for building the kernel. If none is selected, current running kernel will be used (
 .I /proc/config.gz
 )
 .PP
