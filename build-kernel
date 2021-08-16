@@ -1,5 +1,6 @@
 #!/bin/sh
 # Script for building new or updated kernel
+version="1.01-r1"; script_name=`basename "$0"`
 
 # parameter set on emerging file if USE flag grub is set
 grub=0
@@ -29,7 +30,7 @@ cd /usr/src/linux || { echo -e "${red}/usr/src/linux not found${normal} Did you 
 
 # Optional Parameter #1 is the location of the config file used
 # if omitted the running kernel's internal configuration is used
-if [ "$1" != "" ]; then
+if [ $# -gt 0 ]; then
     if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
 		# HELP
 		help=$( cat << HELP
@@ -38,6 +39,9 @@ Usage : ${Blue}build-kernel${normal} [${Green}OPTION${normal}|${Green}DIRECTORY$
 If nothing set, present kernel's built-in config will be used (/proc/config.gz)
 
 ${Green}OPTION${normal} :
+	${bold}-h|--help${normal}	Print this help
+	${bold}-v|--version${normal}	Print this script's current version
+
 	${bold}-c|--current${normal}	use existing /usr/src/linux/.config
 
 ${Green}DIRECTORY${normal} :	Path to .config file to use
@@ -49,26 +53,30 @@ HELP
 		echo -e "$help"
 		exit 0
 
+    elif [ "$1" = "-v" ] || [ "$1" = "--version" ]; then
+		echo -e "${Orange}${script_name}${normal} script, version ${orange}${version}${normal}"
+		exit 0
+
     elif [ "$1" = "-c" ] || [ "$1" = "--current" ]; then
 	# use .config file included in /usr/src/linux
-	if [ -f ".config" ]; then
-	    echo -e "${orange}Using current .config file in /usr/src/linux${normal}"
-	else
-	    echo -e "${red}/usr/src/linux/.config doesn't exist${normal}, please choose an existing config file"
-	    exit 255
-	fi
+		if [ -f ".config" ]; then
+			echo -e "${orange}Using current .config file in /usr/src/linux${normal}"
+		else
+			echo -e "${red}/usr/src/linux/.config doesn't exist${normal}, please choose an existing config file"
+			exit 255
+		fi
 
     elif [ -d "$1" ]; then
-	folder=${1%/}
-	if [ ! "$folder" = "/usr/src/linux" ]; then
-    	    cp "$folder/.config" .config || exit 255;
-	fi
-	echo -e "${orange}Config is $folder/.config${normal}"
+		folder=${1%/}
+		if [ ! "$folder" = "/usr/src/linux" ]; then
+			    cp "$folder/.config" .config || exit 255;
+		fi
+		echo -e "${orange}Config is $folder/.config${normal}"
 
     elif [ -f "$1" ]; then
     	( cp "$1" .config && echo -e "${orange}Config is $1${normal}") || exit 255;
     else
-	echo -e "${red}No configuration found for $1${normal}, use 'build-kernel --help for available options'"; exit 255;
+		echo -e "${red}No configuration found for $1${normal}, use 'build-kernel --help for available options'"; exit 255;
     fi
 
     
