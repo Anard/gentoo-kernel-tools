@@ -1,0 +1,78 @@
+.TH build-kernel 8 "Août 2021" "kernel-tools version 1.01-r1" "Administration Système"
+
+.SH NOM
+build-kernel \- Compile un nouveau noyau dont la source est située dans /usr/src/linux depuis un fichier de configuration donné ou depuis la confguration actuelle du noyau
+
+.SH SYNOPSIS
+.B build-kernel
+[
+.B OPTION
+|
+.B REPERTOIRE
+|
+.B FICHIER
+]
+
+.SH DESCRIPTION
+Pour compiler un noyau, choisissez dd'abord une source dans /usr/src/linux, utiliser
+.I "eselect kernel list"
+sous Gentoo ou
+.I "ln -sf /usr/src/DOSSIER-SOURCE-LINUX /usr/src/linux"
+.PP
+.B OPTION
+utilisé pour choisir un fichier de confiiguration du noyau donné
+Si rien n'est passé, la configuration du noyau courant sera choisie (
+.I /proc/config.gz
+)
+.PP
+Le script essaiera d'abord de mettre à jour les paramètres non renseignés si le noyau à compiler est plus récent que celui de la configuration choisie avec la commande
+.I make oldconfig
+puis il proposera la modification de la configuration via
+.I make menuconfig
+après quoi il compilera le noyau et ses modules puis les installera
+.PP
+Si
+.I dracut
+ou
+.I genkernel
+sont installés, il créera également un image initramfs à l'aide du premier de ces scripts.
+.PP
+Si le script est compilé avec le USE flag
+.I grub
+il mettra finalement à jour le menu de Grub.
+
+.SH OPTIONS
+.TP
+\-h, \-\-help
+affiche une aide succinte pour l'utilisation de ce script
+.TP
+\-v, \-\-version
+affiche la version courante de ce script
+.TP
+\-c, \-\-current
+demande au script d'utiliser le fichier
+.I \.config
+courant placé dans 
+.I /usr/src/linux
+
+.SH REPERTOIRE
+demande au script d'utiliser le fichier .config placé dans le répertoire
+.B REPERTOIRE
+
+.SH FICHIER
+demande au script d'utiliser le fichier de configuration
+.B FICHIER
+
+.SH EXIT STATUS
+.TP
+.B 0
+build-kernel retourne 0 en cas de  succès
+.TP
+.B 1
+indique que la compilation du noyau a échoué
+.TP
+.B 2
+indique que l'installation du noyau et/ou des modules a échoué
+.TP
+.B 255
+indique une erreur lors de la recherche des sources du noyau, du fichier de configuration choisi ou dans la saisie des paramètres
