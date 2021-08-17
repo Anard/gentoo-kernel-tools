@@ -31,14 +31,14 @@ next it will ask for editing config file via
 after what it will build kernel and modules and install all
 .PP
 If
-.I dracut
-or
 .I genkernel
-is found, it will also build initramfs image using first occurrence of these scripts.
+or
+.I dracut
+is used, it will also build initramfs image using wanted tool.
 .PP
-If emerged with
+If
 .I grub
-USE flag, script will finally update Grub menu.
+is used, script will finally update Grub menu.
 
 .SH OPTIONS
 .TP
@@ -53,6 +53,14 @@ tells script too use current
 .I \.config
 file located in 
 .I /usr/src/linux
+.TP
+\-\-(no)grub, \-\-grub=<0|1>
+override script's configuration and update Grub bootloader (or not) when kernel is built
+.TP
+\-\-noinitramfs
+override script's configuration and skip initramfs image generation
+\-\-genkernel, \-\-dracut
+override script's configuration and try to create initramfs image with named tool
 
 .SH DIRECTORY
 tells script to use .config file located in
@@ -62,6 +70,14 @@ tells script to use .config file located in
 tells script to use
 .B FILE
 config file
+
+.SH CONFIGURATION
+Persistent script configuration is stored in
+.I /etc/conf.d/build-kernel.cnf
+.PP
+Prefered way to edit configuration is to override it in user's
+.I ~/.config/build-kernel.cnf
+as it won't be erased by updates
 
 .SH EXIT STATUS
 .TP

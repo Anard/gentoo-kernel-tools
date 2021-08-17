@@ -2,6 +2,11 @@
 # Script for building new or updated kernel
 version="1.01-r5"; script_name=`basename "$0"`
 
+# Config
+#init
+GRUB=0
+INITRAMFS='no'
+#load
 configPath="/usr/lib"
 if [ -f "${configPath}/shell-text.cnf" ]; then
 	source "${configPath}/shell-text.cnf"
@@ -33,19 +38,36 @@ fi
 cd /usr/src/linux || { echo -e "${red}/usr/src/linux not found${normal} Did you forget 'eselect kernel set' ?" >&2 && exit 255 ; }
 
 # Get parameters
+config_set=0
+# config_found tests if config is set, parameter is new file to process
+config_found() {
+	if [ $config_set -gt 0 ]; then
+		echo -e "${orange}Config file already found, skipping $1...${normal}"
+		return 1
+	else
+		return 0
+	fi
+}
+
 while [ $# -gt 0 ]; do
-    if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+
+	case "$1" in
+	  "-h"|"--help")
 		# HELP
 		help=$( cat << HELP
 ${bold}Script for building new or updated kernel${normal}
-Usage : ${Blue}build-kernel${normal} [${Green}OPTION${normal}|${Green}DIRECTORY${normal}|${Green}FILE${normal}]
+Usage : ${Blue}build-kernel${normal} [${Green}OPTION${normal}] [${White}--current${normal}|${Green}DIRECTORY${normal}|${Green}FILE${normal}]
 If nothing set, present kernel's built-in config will be used (/proc/config.gz)
 
 ${Green}OPTION${normal} :
-	${bold}-h|--help${normal}	Print this help
-	${bold}-v|--version${normal}	Print this script's current version
+	${bold}-h|--help${normal}	Print this help and exit
+	${bold}-v|--version${normal}	Print this script's current version and exit
 
 	${bold}-c|--current${normal}	use existing /usr/src/linux/.config
+	${bold}--(no)grub|--grub=<0|1>{normal}	force updating (or not) Grub, ignoring build-kernel config files
+	${bold}--noinitramfs	force to skip initramfs image generation, ignoring build-kernel config files
+	${bold}--genkernel${normal}	force using genkernel tool to create initramfs image, ignoring build-kernel config files
+	${bold}--dracut${normal}	force using dracut tool to create initramfs image, ignoring build-kernel config files
 
 ${Green}DIRECTORY${normal} :	Path to .config file to use
 
@@ -55,35 +77,66 @@ HELP
 )
 		echo -e "$help"
 		exit 0
+		;;
 
-    elif [ "$1" = "-v" ] || [ "$1" = "--version" ]; then
+      "-v"|"--version")
 		echo -e "${Orange}${script_name}${normal} from kernel-tools, version ${orange}${version}${normal}"
 		exit 0
+		;;
 
-    elif [ "$1" = "-c" ] || [ "$1" = "--current" ]; then
-	# use .config file included in /usr/src/linux
+       "-c"|"--current")
+		# use .config file included in /usr/src/linux
 		if [ -f ".config" ]; then
 			echo -e "${orange}Using current .config file in /usr/src/linux${normal}"
+			config_set=1
 		else
 			echo -e "${red}/usr/src/linux/.config doesn't exist${normal}, please choose an existing config file"
 			exit 255
 		fi
+		;;
 
-    elif [ -d "$1" ]; then
-		folder=${1%/}
-		if [ ! "$folder" = "/usr/src/linux" ]; then
-			    cp "$folder/.config" .config || exit 255;
+	  "--grub"|"--grub=1")
+		GRUB=1
+		;;
+	  "--nogrub"|"--grub=0")
+		GRUB=0
+		;;
+
+	  "--noinitramfs")
+		INITRAMFS='no'
+		;;
+	  "--genkernel")
+		INITRAMFS='genkernel'
+		;;
+	  "--dracut")
+		INITRAMFS='dracut'
+		;;
+
+	  *)
+		if [ -d "$1" ]; then
+			folder=${1%/}
+			config_found "${folder}/.config" || ;;
+			if [ ! "$folder" = "/usr/src/linux" ]; then
+					cp "$folder/.config" .config || exit 255;
+			fi
+			echo -e "${orange}Config is $folder/.config${normal}"
+
+		elif [ -f "$1" ]; then
+			config_found "${1}" || ;;
+			( cp "$1" .config && echo -e "${orange}Config is $1${normal}") || exit 255;
+
+		else
+			echo -e "${red}No configuration found for $1${normal}, use 'build-kernel --help for available options'"
+			exit 255
 		fi
-		echo -e "${orange}Config is $folder/.config${normal}"
+		config_set=1
+		;;
+	esac
 
-    elif [ -f "$1" ]; then
-    	( cp "$1" .config && echo -e "${orange}Config is $1${normal}") || exit 255;
-    else
-		echo -e "${red}No configuration found for $1${normal}, use 'build-kernel --help for available options'"; exit 255;
-    fi
+	shift
+done
 
-done  
-else
+if [ $config_set -lt 1 ]; then
     echo -e "${orange}Using present kernel's built-in config${normal}"
     zcat /proc/config.gz >.config || { echo -e "${red}Unable to write config from current kernel used${normal}, please choose a kernel configuration or use 'build-kernel --help'" >&2 && exit 255 ; }
 fi
@@ -101,17 +154,13 @@ make ${MAKEOPTS} || {  echo -e "${red}make ${MAKEOPTS} failed${normal}"; exit 1;
 make ${MAKEOPTS} modules_install || { echo -e "${red}make modules_install failed${normal}";  exit 2; }
 make ${MAKEOPTS} install
 
-# no longer needed but left in as an example
-# kver="$(eselect kernel list | awk '{gsub("linux-","") ; if ($3 ~ "*") print $2}')"
-# i.e. kver contains 4.9.9-gentoo
-
 # update initramfs
-echo
-if [ $INITRAMFS != 'no'  ]; then
+if [ "$INITRAMFS" != 'no'  ]; then
+	echo
 	echo -e "${green}Updating initramfs image...${normal}"
 	case $INITRAMFS in
 		'genkernel')
-			/usr/bin/genkernel --no-clean initramfs || { echo -e '${red}Unable to create Initramfs image with genkernel tool$(normal}'; exit 3; }
+			genkernel --no-clean initramfs || { echo -e '${red}Unable to create Initramfs image with genkernel tool$(normal}'; exit 3; }
 			;;
 
 		'dracut')
@@ -137,7 +186,7 @@ echo -e "${Green}Done, kernel built${normal}"
 # update bootloader
 if [ $GRUB -gt 0 ]; then
     echo -e "${green}Updating Grub bootloader...${normal}"
-    update-grub
+    update-grub || echo -e "${orange}Unable to update Grub bootloader, skipping...${normal}"
 else
     echo "Don't forget to update your bootloader"
 fi

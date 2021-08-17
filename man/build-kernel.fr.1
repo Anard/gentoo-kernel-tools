@@ -34,11 +34,11 @@ Si
 .I dracut
 ou
 .I genkernel
-sont installés, il créera également une image initramfs à l'aide du premier de ces scripts.
+sont utilisés, il créera également une image initramfs à l'aide de l'outil choisi.
 .PP
-Si le script est compilé avec le USE flag
+Si
 .I grub
-il mettra finalement à jour le menu de Grub.
+est utilisé, il mettra finalement à jour le menu de Grub.
 
 .SH OPTIONS
 .TP
@@ -53,6 +53,15 @@ demande au script d'utiliser le fichier
 .I \.config
 courant placé dans 
 .I /usr/src/linux
+.TP
+\-\-(no)grub, \-\-grub=<0|1>
+remplace la configuration du script et met à jour (ou non) le menu de Grub après la compilation du noyau
+.TP
+\-\-noinitramfs
+remplace la configuration du script et saute la création de l'image initramfs
+\-\-genkernel, \-\-dracut
+remplace la configuration du script et tente de créer une image initramfs avec l'outil désigné
+
 
 .SH REPERTOIRE
 demande au script d'utiliser le fichier .config placé dans le répertoire
@@ -61,6 +70,14 @@ demande au script d'utiliser le fichier .config placé dans le répertoire
 .SH FICHIER
 demande au script d'utiliser le fichier de configuration
 .B FICHIER
+
+.SH CONFIGURATION
+La configuration persistente du script est située dans
+.I /etc/conf.d/build-kernel.cnf
+.PP
+Il est préférable de la modifier en créant un fichier utilisateur
+.I ~/.config/build-kernel.cnf
+afin d'éviter que la configuration ne soit écrasée lors d'une mise à jour
 
 .SH RETOUR
 .TP

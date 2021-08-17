@@ -11,4 +11,4 @@ Use `build-kernel --help` for more information
 # Installation instructions
 The preferred way to install these Gentoo's kernel-tools is to add [overlay](https://github.com/Anard/anard-overlay) and `# emerge -a kernel-tools`
 
-It's also possible to clone this repository and copy scripts in /usr/sbin for distributions not using portage, but need to manually set grub variable in build-kernel script if you want script to update grub, and install [shell-texts](https://github.com/Anard/HelpSh.git) for coloring texts.
+It's also possible to clone this repository and copy scripts in /usr/sbin and config files in /etc/conf.d, but need to manually check dependencies and configuration.

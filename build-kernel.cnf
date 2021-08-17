@@ -5,5 +5,5 @@
 # script will try to update grub by update-grub command if GRUB parameter is set
 GRUB=0
 
-# program to use to generate initramfs image, possible values : 'no', 'genkernel', 'dracut'
+# tool to use to generate initramfs image, possible values : 'no', 'genkernel', 'dracut'
 INITRAMFS='no'
