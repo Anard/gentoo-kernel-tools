@@ -11,8 +11,7 @@ configPath="/usr/lib"
 if [ -f "${configPath}/shell-text.cnf" ]; then
 	source "${configPath}/shell-text.cnf"
 fi
-#configPath="/etc/conf.d"
-configPath="./"
+configPath="/etc/conf.d"
 localPath="${HOME}/.config"
 configFile="build-kernel.cnf"
 source "${configPath}/${configFile}"

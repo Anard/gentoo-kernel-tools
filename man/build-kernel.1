@@ -7,7 +7,7 @@ build-kernel \- Easily build a new kernel which source is located in /usr/src/li
 .B build-kernel
 [
 .B OPTION
-|
+] [
 .B DIRECTORY
 |
 .B FILE
@@ -19,8 +19,14 @@ For building a kernel, first select a kernel source in /usr/src/linux, use
 or
 .I "ln -sf /usr/src/LINUX-SRC-DIRECTORY /usr/src/linux"
 .PP
+A kernel's configuration file can be choosen with
 .B OPTION
-is used to select initial config file to use for building the kernel. If none is selected, current running kernel will be used (
+.I --current
+or by choosing a
+.B DIRECTORY
+or
+.B FILE
+\- If none is selected, current running kernel will be used (
 .I /proc/config.gz
 )
 .PP
@@ -28,13 +34,18 @@ Script will first try to update config file using
 .I make oldconfig
 next it will ask for editing config file via
 .I make menuconfig
-after what it will build kernel and modules and install all
+after what it will build kernel and modules and install all.
 .PP
 If
 .I genkernel
 or
 .I dracut
-is used, it will also build initramfs image using wanted tool.
+is used, it will also build initramfs image using wanted tool (
+.R see
+.BR CONFIGURATION
+).
+.PP
+After what it will try to rebuild emerged modules for this kernel.
 .PP
 If
 .I grub
@@ -59,6 +70,7 @@ override script's configuration and update Grub bootloader (or not) when kernel 
 .TP
 \-\-noinitramfs
 override script's configuration and skip initramfs image generation
+.TP
 \-\-genkernel, \-\-dracut
 override script's configuration and try to create initramfs image with named tool
 
@@ -78,6 +90,26 @@ Persistent script configuration is stored in
 Prefered way to edit configuration is to override it in user's
 .I ~/.config/build-kernel.cnf
 as it won't be erased by updates
+.PP
+Possible configuration values are
+.TP
+.B GRUB
+=
+.B 0
+|
+.B 1
+
+Updates (or not) Grub menu on endd of kernel's compilation
+.TP
+.B INITRAMFS
+=
+.B no
+|
+.B genkernel
+|
+.B dracut
+
+Create (or not) an initramfs image with choosen tool
 
 .SH EXIT STATUS
 .TP
@@ -89,6 +121,9 @@ indicates that making kernel have failed
 .TP
 .B 2
 indicates that installing kernel and modules have failed
+.TP
+.B 3
+indicates that creating initramfs image have failed
 .TP
 .B 255
 indicates an error in finding source directory and/or config file or an error in script arguments

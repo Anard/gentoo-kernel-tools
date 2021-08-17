@@ -1,13 +1,13 @@
 .TH build-kernel 8 "Août 2021" "kernel-tools version 1.01-r5" "Administration Système"
 
 .SH NOM
-build-kernel \- Compile un nouveau noyau dont la source est située dans /usr/src/linux depuis un fichier de configuration donné ou depuis la confguration actuelle du noyau
+build-kernel \- Compile un nouveau noyau dont la source est située dans /usr/src/linux depuis un fichier de configuration donné ou depuis la configuration actuelle du noyau
 
 .SH SYNOPSIS
 .B build-kernel
 [
-.B OPTION
-|
+.B OPTIONS
+] [
 .B REPERTOIRE
 |
 .B FICHIER
@@ -19,8 +19,14 @@ Pour compiler un noyau, choisissez d'abord une source dans /usr/src/linux, utili
 ou
 .I "ln -sf /usr/src/DOSSIER-SOURCE-LINUX /usr/src/linux"
 .PP
+Un fichier de configuration du noyau peut être choisi avec l'
 .B OPTION
-est utilisé pour choisir un fichier de configuration du noyau donné. Si rien n'est passé, la configuration du noyau courant sera choisie (
+.I --current
+ou en indiquant un
+.B REPERTOIRE
+ou un
+.B FICHIER
+\- Si rien n'est indiqué, la configuration du noyau courant sera choisie (
 .I /proc/config.gz
 )
 .PP
@@ -28,13 +34,18 @@ Le script essaiera d'abord de mettre à jour les paramètres non renseignés si 
 .I make oldconfig
 puis il proposera la modification de la configuration via
 .I make menuconfig
-après quoi il compilera le noyau et ses modules puis les installera
+après quoi il compilera le noyau et ses modules puis les installera.
 .PP
 Si
 .I dracut
 ou
 .I genkernel
-sont utilisés, il créera également une image initramfs à l'aide de l'outil choisi.
+sont utilisés, il créera également une image initramfs à l'aide de l'outil choisi (
+.R voir 
+.BR CONFIGURATION
+).
+.PP
+Après quoi il tentera de recompiler les modules compilés via emerge.
 .PP
 Si
 .I grub
@@ -59,6 +70,7 @@ remplace la configuration du script et met à jour (ou non) le menu de Grub apr�
 .TP
 \-\-noinitramfs
 remplace la configuration du script et saute la création de l'image initramfs
+.TP
 \-\-genkernel, \-\-dracut
 remplace la configuration du script et tente de créer une image initramfs avec l'outil désigné
 
@@ -78,6 +90,26 @@ La configuration persistente du script est située dans
 Il est préférable de la modifier en créant un fichier utilisateur
 .I ~/.config/build-kernel.cnf
 afin d'éviter que la configuration ne soit écrasée lors d'une mise à jour
+.PP
+Les valeurs de configuration possibles sont
+.TP
+.B GRUB
+=
+.B 0
+|
+.B 1
+
+Met à jour ou non le menu de Grub à la fin de la compilation du noyau
+.TP
+.B INITRAMFS
+=
+.B no
+|
+.B genkernel
+|
+.B dracut
+
+Crée ou non une image initramfs avec l'outil désigné
 
 .SH RETOUR
 .TP
@@ -89,6 +121,9 @@ indique que la compilation du noyau a échoué
 .TP
 .B 2
 indique que l'installation du noyau et/ou des modules a échoué
+.TP
+.B 3
+indique que la création de l'image initramfs a échoué
 .TP
 .B 255
 indique une erreur lors de la recherche des sources du noyau, du fichier de configuration choisi ou dans la saisie des paramètres
