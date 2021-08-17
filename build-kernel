@@ -11,7 +11,8 @@ configPath="/usr/lib"
 if [ -f "${configPath}/shell-text.cnf" ]; then
 	source "${configPath}/shell-text.cnf"
 fi
-configPath="/etc/conf.d"
+#configPath="/etc/conf.d"
+configPath="./"
 localPath="${HOME}/.config"
 configFile="build-kernel.cnf"
 source "${configPath}/${configFile}"
@@ -56,18 +57,20 @@ while [ $# -gt 0 ]; do
 		# HELP
 		help=$( cat << HELP
 ${bold}Script for building new or updated kernel${normal}
-Usage : ${Blue}build-kernel${normal} [${Green}OPTION${normal}] [${White}--current${normal}|${Green}DIRECTORY${normal}|${Green}FILE${normal}]
-If nothing set, present kernel's built-in config will be used (/proc/config.gz)
+Usage : ${Blue}build-kernel${normal} [${Green}OPTIONS${normal}] [${Green}DIRECTORY${normal}|${Green}FILE${normal}]
+If no config file set, present kernel's built-in config will be used (/proc/config.gz)
 
-${Green}OPTION${normal} :
+${Green}OPTIONS${normal} :
 	${bold}-h|--help${normal}	Print this help and exit
 	${bold}-v|--version${normal}	Print this script's current version and exit
 
 	${bold}-c|--current${normal}	use existing /usr/src/linux/.config
-	${bold}--(no)grub|--grub=<0|1>{normal}	force updating (or not) Grub, ignoring build-kernel config files
-	${bold}--noinitramfs	force to skip initramfs image generation, ignoring build-kernel config files
-	${bold}--genkernel${normal}	force using genkernel tool to create initramfs image, ignoring build-kernel config files
-	${bold}--dracut${normal}	force using dracut tool to create initramfs image, ignoring build-kernel config files
+ 
+	${underline}Options to ignore build-kernel config files${normal}
+	${bold}--(no)grub|--grub=<0|1>${normal}	force updating (or not) Grub
+	${bold}--noinitramfs${normal}		force to skip initramfs image generation
+	${bold}--genkernel${normal}		force using genkernel tool to create initramfs image
+	${bold}--dracut${normal}		force using dracut tool to create initramfs image
 
 ${Green}DIRECTORY${normal} :	Path to .config file to use
 
@@ -86,6 +89,7 @@ HELP
 
        "-c"|"--current")
 		# use .config file included in /usr/src/linux
+		config_found ".config" || { shift && continue 2; }
 		if [ -f ".config" ]; then
 			echo -e "${orange}Using current .config file in /usr/src/linux${normal}"
 			config_set=1
@@ -115,14 +119,14 @@ HELP
 	  *)
 		if [ -d "$1" ]; then
 			folder=${1%/}
-			config_found "${folder}/.config" || ;;
+			config_found "${folder}/.config" || { shift && continue 2; }
 			if [ ! "$folder" = "/usr/src/linux" ]; then
 					cp "$folder/.config" .config || exit 255;
 			fi
 			echo -e "${orange}Config is $folder/.config${normal}"
 
 		elif [ -f "$1" ]; then
-			config_found "${1}" || ;;
+			config_found "${1}" || { shift && continue 2; }
 			( cp "$1" .config && echo -e "${orange}Config is $1${normal}") || exit 255;
 
 		else
