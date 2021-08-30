@@ -22,13 +22,17 @@ or
 A kernel's configuration file can be choosen with
 .B OPTION
 .I --current
+or
+.I --working
 or by choosing a
 .B DIRECTORY
 or
 .B FILE
 \- If none is selected, current running kernel will be used (
 .I /proc/config.gz
-)
+), if it's different than
+.I /usr/src/linux/.config
+, confirmation will be asked.
 .PP
 Script will first try to update config file using
 .I make oldconfig
@@ -64,6 +68,10 @@ tells script too use current
 .I \.config
 file located in 
 .I /usr/src/linux
+.TP
+\-w, \-\-working
+tells script too use current kernel's built-in configuration
+.I /proc/config\.gz
 .TP
 \-\-(no)grub, \-\-grub=<0|1>
 override script's configuration and update Grub bootloader (or not) when kernel is built

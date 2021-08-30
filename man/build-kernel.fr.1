@@ -22,13 +22,17 @@ ou
 Un fichier de configuration du noyau peut être choisi avec l'
 .B OPTION
 .I --current
+ou
+.I --working
 ou en indiquant un
 .B REPERTOIRE
 ou un
 .B FICHIER
 \- Si rien n'est indiqué, la configuration du noyau courant sera choisie (
 .I /proc/config.gz
-)
+), si celle-ci diffère de
+.I /usr/src/.config
+, une confirmation sera demandée.
 .PP
 Le script essaiera d'abord de mettre à jour les paramètres non renseignés si le noyau à compiler est plus récent que celui de la configuration choisie avec la commande
 .I make oldconfig
@@ -64,6 +68,10 @@ demande au script d'utiliser le fichier
 .I \.config
 courant placé dans 
 .I /usr/src/linux
+.TP
+\-w, \-\-working
+demande au script d'utiliser la configuration du noyau actuel
+.I /proc/config\.gz
 .TP
 \-\-(no)grub, \-\-grub=<0|1>
 remplace la configuration du script et met à jour (ou non) le menu de Grub après la compilation du noyau
