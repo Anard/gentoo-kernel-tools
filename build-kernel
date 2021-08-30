@@ -37,8 +37,7 @@ fi
 
 cd /usr/src/linux || { echo -e "${red}/usr/src/linux not found${normal} Did you forget 'eselect kernel set' ?" >&2 && exit 255 ; }
 
-# Get parameters
-config_set=0
+# Functions
 # config_found tests if config is set, parameter is new file to process
 config_found() {
 	if [ $config_set -gt 0 ]; then
@@ -48,6 +47,14 @@ config_found() {
 		return 0
 	fi
 }
+# copy_builtin tries to copy /proc/config.gz to /usr/src/linux/.config or exit
+copy_builtin() {
+	zcat /proc/config.gz >.config || { echo -e "${red}Unable to write config from current kernel used${normal}, please choose a kernel configuration or use 'build-kernel --help'" >&2 && exit 255 ; }
+	return 0
+}
+
+# Get parameters
+config_set=0
 
 while [ $# -gt 0 ]; do
 
@@ -64,6 +71,7 @@ ${Green}OPTIONS${normal} :
 	${bold}-v|--version${normal}	Print this script's current version and exit
 
 	${bold}-c|--current${normal}	use existing /usr/src/linux/.config
+	${bold}-w|--working${normal}	use working /proc/config.gz
  
 	${underline}Options to ignore build-kernel config files${normal}
 	${bold}--(no)grub|--grub=<0|1>${normal}	force updating (or not) Grub
@@ -94,6 +102,19 @@ HELP
 			config_set=1
 		else
 			echo -e "${red}/usr/src/linux/.config doesn't exist${normal}, please choose an existing config file"
+			exit 255
+		fi
+		;;
+
+       "-w"|"--working")
+		# use current working /proc/config.gz
+		config_found "/proc/config.gz" || { shift && continue 2; }
+		if [ -f "/proc/config.gz" ]; then
+			echo -e "${orange}Using current working /proc/config.gz file${normal}"
+			zcat /proc/config.gz >.config
+			config_set=1
+		else
+			echo -e "${red}/proc/config.gz doesn't exist${normal}, please choose an existing config file"
 			exit 255
 		fi
 		;;
@@ -129,7 +150,7 @@ HELP
 			( cp "$1" .config && echo -e "${orange}Config is $1${normal}") || exit 255;
 
 		else
-			echo -e "${red}No configuration found for $1${normal}, use 'build-kernel --help for available options'"
+			echo -e "${red}No configuration found for $1${normal}, use 'build-kernel --help' for available options"
 			exit 255
 		fi
 		config_set=1
@@ -139,9 +160,51 @@ HELP
 	shift
 done
 
+# no config file given
 if [ $config_set -lt 1 ]; then
     echo -e "${orange}Using present kernel's built-in config${normal}"
-    zcat /proc/config.gz >.config || { echo -e "${red}Unable to write config from current kernel used${normal}, please choose a kernel configuration or use 'build-kernel --help'" >&2 && exit 255 ; }
+	if [ -f .config ]; then
+		zdiff -q /proc/config.gz .config
+		if [ $? -gt 0 ]; then
+			while true;	do
+				question=$( cat << QUESTION
+${bold}Which configuration do you want to use ?${normal}
+${bold}w${normal} for ${bold}working${normal} /proc/config.gz (default)
+${bold}c${normal} for ${bold}current${normal} /usr/src/linux/.config
+${bold}d${normal} to show ${bold}differences${normal} side by side
+^C to abort
+--> 
+
+QUESTION
+)
+				read -p "$question" ans
+
+				case "$ans" in
+					"w"|"W"|"working"|"")	
+						echo -e "${orange}Using current working /proc/config.gz file${normal}"
+						copy_builtin
+						break 2
+						;;
+
+					"c"|"C"|"current")
+						echo -e "${orange}Using current .config file in /usr/src/linux${normal}"
+						break 2
+						;;
+
+					"d"|"D"|"diff"|"difference"|"differences")
+						echo "Working | Current"
+						zdiff -y --suppress-common-lines /proc/config.gz .config
+						echo
+						;;
+
+					*)
+						echo "Unrecognized answer (W/c/d ?)"
+						;;
+				esac
+			done
+		fi
+	else copy_builtin	
+	fi
 fi
 
 # At this point we should compare kernel versions and make oldconfig if the base version has updated
