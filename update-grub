@@ -3,7 +3,7 @@ if [ $# -gt 0 ]; then
 	if [ -f "$1" ]; then
 		file="$1"
 	else
-		echo "Usage : update-grub [FILE] - if FILE is not set, use /boot/grub/grub.cng"
+		echo "Usage : update-grub [FILE] - if FILE is not set, use /boot/grub/grub.cfg"
 		exit 255
 	fi
 else
