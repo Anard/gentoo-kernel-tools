@@ -1,23 +1,50 @@
 #!/bin/sh
 # Script for building new or updated kernel
-version="1.01-r5"; script_name=`basename "$0"`
+version="1.01-r6"; script_name=`basename "$0"`
 
 # Config
-#init
-GRUB=0
-INITRAMFS='no'
 #load
 configPath="/usr/lib"
 if [ -f "${configPath}/shell-text.cnf" ]; then
 	source "${configPath}/shell-text.cnf"
 fi
 configPath="/etc/conf.d"
-localPath="${HOME}/.config"
+localPath="/home/$(logname)/.config"
 configFile="build-kernel.cnf"
 source "${configPath}/${configFile}"
 if [ -f "${localPath}/${configFile}" ]; then
 	source "${localPath}/${configFile}"
 fi
+#control & default config
+case "$GRUB" in
+	1|'yes')
+		GRUB=1
+		;;	
+	0|'no')
+		GRUB=0
+		;;
+	*)
+		GRUB=0
+		echo -e "${red}GRUB parameter unknown${normal}, Grub won't be updated" >&2
+		;;
+esac
+case "$INITRAMFS" in
+	'genkernel'|'dracut'|'no')
+		;;
+	*)
+		INITRAMFS='no'
+		echo -e "${red}INITRAMFS parameter unknown${normal}, won't build initramfs image" >&2
+		;;
+esac
+case "$CONFIG_TOOL" in
+	'xconfig'|'gconfig'|'nconfig')
+		;;
+	*)
+		CONFIG_TOOL='menuconfig'
+		echo -e "${red}CONFIG_TOOL parameter unknown${normal}, using menuconfig" >&2
+		;;
+esac
+
 
 # test if running on a bare VT
 if [ "$TERM" = linux ]; then
@@ -27,7 +54,7 @@ fi
 # try to get MAKEOPTS from /etc/portage/make.conf
 makeFile="/etc/portage/make.conf"
 if [ -f "${makeFile}" ]; then
-    . "${makeFile}"
+    source "${makeFile}"
 else
     # run nproc to get the number of cores
     NPROC=$( nproc )
@@ -150,7 +177,7 @@ HELP
 			( cp "$1" .config && echo -e "${orange}Config is $1${normal}") || exit 255;
 
 		else
-			echo -e "${red}No configuration found for $1${normal}, use 'build-kernel --help' for available options"
+			echo -e "${red}No configuration found for $1${normal}, use 'build-kernel --help' for available options" >&2
 			exit 255
 		fi
 		config_set=1
@@ -166,8 +193,7 @@ if [ $config_set -lt 1 ]; then
 	if [ -f .config ]; then
 		zdiff -q /proc/config.gz .config
 		if [ $? -gt 0 ]; then
-			while true;	do
-				question=$( cat << QUESTION
+			question=$( cat << QUESTION
 ${bold}Which configuration do you want to use ?${normal}
 ${bold}w${normal} for ${bold}working${normal} /proc/config.gz (default)
 ${bold}c${normal} for ${bold}current${normal} /usr/src/linux/.config
@@ -177,6 +203,8 @@ ${bold}d${normal} to show ${bold}differences${normal} side by side
 
 QUESTION
 )
+			while true;	do
+
 				read -p "$question" ans
 
 				case "$ans" in
@@ -198,7 +226,7 @@ QUESTION
 						;;
 
 					*)
-						echo "Unrecognized answer (W/c/d ?)"
+						echo "Unknown answer (W/c/d ?)"
 						;;
 				esac
 			done
@@ -209,7 +237,35 @@ fi
 
 # At this point we should compare kernel versions and make oldconfig if the base version has updated
 make oldconfig
-make menuconfig
+make ${CONFIG_TOOL} || {
+	echo -e "${red}Impossible to launch the configuration tool${normal}"
+	question=$( cat << QUESTION
+${bold}Do you want to build script without editing kernel's configuration file ?${normal} (Y/n)
+--> 
+
+QUESTION
+)
+	while true;	do
+
+		read -p "$question" ans
+
+		case "$ans" in
+			[nN]*)	
+				echo -e "${orange}Exiting...${normal}"
+				exit 0
+				;;
+
+			[yY]*|'')
+				break 2
+				;;
+
+			*)
+				echo "Unknown answer (Y/n ?)"
+				;;
+
+		esac
+	done
+}
 
 # Actually build
 echo
@@ -243,7 +299,7 @@ fi
 # virtualbox modules, nvidia etc.
 echo
 echo -e "${green}Building Out of Kernel modules${normal}"
-emerge @module-rebuild
+emerge -q @module-rebuild
 
 # finished
 echo

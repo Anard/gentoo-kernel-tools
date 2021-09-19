@@ -1,4 +1,4 @@
-.TH build-kernel 8 "Août 2021" "kernel-tools version 1.01-r5" "Administration Système"
+.TH build-kernel 8 "Août 2021" "kernel-tools version 1.01-r6" "Administration Système"
 
 .SH NOM
 build-kernel \- Compile un nouveau noyau dont la source est située dans /usr/src/linux depuis un fichier de configuration donné ou depuis la configuration actuelle du noyau
@@ -100,6 +100,18 @@ Il est préférable de la modifier en créant un fichier utilisateur
 afin d'éviter que la configuration ne soit écrasée lors d'une mise à jour
 .PP
 Les valeurs de configuration possibles sont
+.TP
+.B CONFIG_TOOL
+=
+.B 'menuconfig'
+|
+.B 'xconfig'
+|
+.B 'gconfig'
+|
+.B 'nconfig'
+
+Sélectionne l'outil à utiliser pour l'édition du fichier de configuration
 .TP
 .B GRUB
 =

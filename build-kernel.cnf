@@ -2,8 +2,11 @@
 # it can be overriden by ~/.config/build-kernel.cnf file
 # this file is written by USE flags set on emerging, if you edit this one, it will be overriden by updates
 
+# config tool to use to edit configuration file, available values : 'menuconfig', 'xconfig', 'gconfig', 'nconfig'
+CONFIG_TOOL='menuconfig'
+
 # script will try to update grub by update-grub command if GRUB parameter is set
 GRUB=0
 
-# tool to use to generate initramfs image, possible values : 'no', 'genkernel', 'dracut'
+# tool to use to generate initramfs image, available values : 'no', 'genkernel', 'dracut'
 INITRAMFS='no'

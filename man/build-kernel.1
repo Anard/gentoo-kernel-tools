@@ -1,4 +1,4 @@
-.TH build-kernel 8 "August 2021" "kernel-tools version 1.01-r5"
+.TH build-kernel 8 "August 2021" "kernel-tools version 1.01-r6"
 
 .SH NAME
 build-kernel \- Easily build a new kernel which source is located in /usr/src/linux from given or current working config file
@@ -100,6 +100,18 @@ Prefered way to edit configuration is to override it in user's
 as it won't be erased by updates
 .PP
 Possible configuration values are
+.TP
+.B CONFIG_TOOL
+=
+.B 'menuconfig'
+|
+.B 'xconfig'
+|
+.B 'gconfig'
+|
+.B 'nconfig'
+
+Choose tool to use for editing config file
 .TP
 .B GRUB
 =
