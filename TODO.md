@@ -1,3 +1,0 @@
-- compare /proc/config.gz & /usr/src/linux/.config if no parameter and ask which to use if different
-- add option -w --working to use /proc/config.gz
-- propose make menuconfig or make xconfig with x11-libs/gtk+ dev-libs/glib and gnome-base/libglade as dependencies / make xconfig with dev-qt/qtwidgets / make nconfig with sys-libs/ncurses
