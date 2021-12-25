@@ -37,7 +37,7 @@ case "$INITRAMFS" in
 		;;
 esac
 case "$CONFIG_TOOL" in
-	'xconfig'|'gconfig'|'nconfig')
+	'menuconfig'|'xconfig'|'gconfig'|'nconfig')
 		;;
 	*)
 		CONFIG_TOOL='menuconfig'
