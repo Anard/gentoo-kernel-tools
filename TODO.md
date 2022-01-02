@@ -1,0 +1,1 @@
+- propose full gtk version with zenity
