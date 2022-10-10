@@ -219,9 +219,7 @@ case ${#kernel[@]} in
 			fi
 		done
 		;;
-		unset selected_kernel
 esac
-unset kernel
 
 # no config file given
 if [ $config_set -lt 1 ]; then
