@@ -62,7 +62,41 @@ else
     MAKEOPTS="-j${NPROC}"
 fi
 
-cd /usr/src/linux || { echo -e "${red}/usr/src/linux not found${normal} Did you forget 'eselect kernel set' ?" >&2 && exit 255 ; }
+# select kernel to build
+kernel=( $( eselect --brief kernel list ) )
+case ${#kernel[@]} in
+	0)
+		echo -e "${red}Sources not found${normal} Have you merged some kernel source ?" >&2
+		exit 255
+		;;
+	1)
+		eselect kernel set 1
+		;;
+	*)
+		selected_kernel[0]=$( eselect kernel list | grep '*' | cut -d'[' -f2 | cut -d']' -f1 )
+		[ ${selected_kernel[0]} ] && selected_kernel[1]=$( eselect kernel list | grep '*' | awk '{print $2}' )
+		echo "Choose kernel you want to build :"
+		[ ${selected_kernel[0]} ] && echo -e "${bold}[0]	${selected_kernel[1]}${normal} (default, currently selected)"
+		for i in ${!kernel[@]}; do
+			let num=$i+1
+			echo "[$num]	${kernel[$i]}"
+		done
+		while true; do
+			read ans
+			[ $ans ] || ans=0
+			if [ $ans -gt $num ]; then
+				echo "Unknown option $ans, please choose an option in list above"
+			
+			elif [ $ans -gt 0 ]; then
+				eselect kernel set "$ans"
+				break
+			
+			else
+				[ ${selected_kernel[0]} ] && break || echo "No currently selected kernel found, please choose one from availables"				
+			fi
+		done
+		;;
+esac
 
 # Functions
 # config_found tests if config is set, parameter is new file to process
