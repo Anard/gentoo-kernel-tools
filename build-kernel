@@ -220,6 +220,7 @@ case ${#kernel[@]} in
 		done
 		;;
 esac
+cd /usr/src/linux
 
 # no config file given
 if [ $config_set -lt 1 ]; then
