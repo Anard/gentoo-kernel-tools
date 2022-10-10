@@ -1,7 +1,7 @@
 .TH build-kernel 8 "August 2021" "kernel-tools version 1.22"
 
 .SH NAME
-build-kernel \- Easily build a new kernel which source is located in /usr/src/linux from given or current working config file
+build-kernel \- Easily build a new kernel from source with given or current working config file
 
 .SH SYNOPSIS
 .B build-kernel
@@ -14,11 +14,6 @@ build-kernel \- Easily build a new kernel which source is located in /usr/src/li
 ]
 
 .SH DESCRIPTION
-For building a kernel, first select a kernel source in /usr/src/linux, use
-.I "eselect kernel set"
-or
-.I "ln -sf /usr/src/LINUX-SRC-DIRECTORY /usr/src/linux"
-.PP
 A kernel's configuration file can be choosen with
 .B OPTION
 .I --current
@@ -34,7 +29,8 @@ or
 .I /usr/src/linux/.config
 , confirmation will be asked.
 .PP
-Script will first try to update config file using
+Script will first ask for source to build if multiple sources are available.
+It will next try to update config file using
 .I make oldconfig
 next it will ask for editing config file via
 .I make menuconfig

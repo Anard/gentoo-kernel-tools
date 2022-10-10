@@ -1,7 +1,7 @@
 .TH build-kernel 8 "Août 2021" "kernel-tools version 1.22" "Administration Système"
 
 .SH NOM
-build-kernel \- Compile un nouveau noyau dont la source est située dans /usr/src/linux depuis un fichier de configuration donné ou depuis la configuration actuelle du noyau
+build-kernel \- Compile un nouveau noyau depuis la source et un fichier de configuration donné ou depuis la configuration du noyau actuel
 
 .SH SYNOPSIS
 .B build-kernel
@@ -14,11 +14,6 @@ build-kernel \- Compile un nouveau noyau dont la source est située dans /usr/sr
 ]
 
 .SH DESCRIPTION
-Pour compiler un noyau, choisissez d'abord une source dans /usr/src/linux, utiliser
-.I "eselect kernel set"
-ou
-.I "ln -sf /usr/src/DOSSIER-SOURCE-LINUX /usr/src/linux"
-.PP
 Un fichier de configuration du noyau peut être choisi avec l'
 .B OPTION
 .I --current
@@ -34,7 +29,8 @@ ou un
 .I /usr/src/.config
 , une confirmation sera demandée.
 .PP
-Le script essaiera d'abord de mettre à jour les paramètres non renseignés si le noyau à compiler est plus récent que celui de la configuration choisie avec la commande
+Le script demandera d’abord quelle source utiliser si plusieurs sont présentes.
+Il essaiera ensuite de mettre à jour les paramètres non renseignés si le noyau à compiler est plus récent que celui de la configuration choisie avec la commande
 .I make oldconfig
 puis il proposera la modification de la configuration via
 .I make menuconfig
