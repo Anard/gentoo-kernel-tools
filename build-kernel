@@ -193,13 +193,12 @@ case ${#kernel[@]} in
 		exit 255
 		;;
 	1)
-		eselect kernel set 1
+		eselect kernel set ${kernel[0]}
 		;;
 	*)
-		selected_kernel[0]=$( eselect kernel list | grep '*' | cut -d'[' -f2 | cut -d']' -f1 )
-		[ ${selected_kernel[0]} ] && selected_kernel[1]=$( eselect kernel list | grep '*' | awk '{print $2}' )
+		selected_kernel=$( eselect kernel list | grep '*' | awk '{print $2}' )
 		echo "Choose kernel you want to build :"
-		[ ${selected_kernel[0]} ] && echo -e "${bold}[0]	${selected_kernel[1]}${normal} (default, currently selected)"
+		[ ${selected_kernel} ] && echo -e "${bold}[0]	${selected_kernel}${normal} (default, currently selected)"
 		for i in ${!kernel[@]}; do
 			let num=$i+1
 			echo "[$num]	${kernel[$i]}"
@@ -211,11 +210,14 @@ case ${#kernel[@]} in
 				echo "Unknown option $ans, please choose an option in list above"
 			
 			elif [ $ans -gt 0 ]; then
-				eselect kernel set "$ans"
+				let num=$ans-1
+				echo "$ans ${kernel[$num]}"
+				eselect kernel set "${kernel[$num]}"
+				eselect kernel list && exit
 				break
 			
 			else
-				[ ${selected_kernel[0]} ] && break || echo "No currently selected kernel found, please choose one from availables"				
+				[ ${selected_kernel} ] && break || echo "No currently selected kernel found, please choose one from availables"				
 			fi
 		done
 		;;
