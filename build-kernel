@@ -211,9 +211,7 @@ case ${#kernel[@]} in
 			
 			elif [ $ans -gt 0 ]; then
 				let num=$ans-1
-				echo "$ans ${kernel[$num]}"
 				eselect kernel set "${kernel[$num]}"
-				eselect kernel list && exit
 				break
 			
 			else
